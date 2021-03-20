@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+        <script src="http://cdn.staticfile.org/moment.js/2.24.0/moment.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>payment schedule</h1>
+        <form class="form">
+            <div class="form-group">
+                <label for="StartDate">Start Date </label>
+                <input type="Date" class="form-control" id="StartDate" placeholder="Start Date" value="2021-01-01">
+            </div>
+            <div class="form-group">
+                <label for="LoanAmount">Loan Amount ($)</label>
+                <div class="input-group">
+                    <span class="input-group-addon">$</span>
+                    <input type="text" value='10000' class="form-control" id="LoanAmount" placeholder="Loan Amount">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="StartDate">Installment Interval (Daily, Weekly, Monthly)</label>
+                <div class="input-group">
+                    <div class="input-group">
+                        <span class="input-group-addon">periods</span>
+                        <input type="text" class="form-control number" aria-label="..." value='3'>
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false"><span class="txt">Daily</span> <span
+                                    class="caret"></span></button>
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li><a href="#">Daily</a></li>
+                                <li><a href="#">Weekly</a></li>
+                                <li><a href="#">Monthly</a></li>
+                            </ul>
+                        </div><!-- /btn-group -->
+                    </div><!-- /input-group -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="Rate">Simple Interest Rate (%)</label>
+                <div class="input-group">
+                    <span class="input-group-addon">$</span>
+                    <input type="text" class="form-control" id="Rate" placeholder="Loan Amount" value="1">
+                    <span class="input-group-addon Date">(%)</span>
+                </div>
+            </div>
+            <button type="button" class="btn btn-default submit">Submit</button>
+        </form>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>serial</th>
+                    <th>time</th>
+                    <th>money($)</th>
+                </tr>
+            </thead>
+            <tbody class="listform">
+
+            </tbody>
+        </table>
+    </div>
+    <script>
+        $(function () {
+            $('.dropdown-menu a').on('click', function () {
+                $('.dropdown-toggle .txt').html($(this).html())
+            })
+            var holiday = [];
+            var festival = [
+                "01-01",
+                "01-18",
+                "02-25",
+                "02-15",
+                "05-31",
+                '07-04',
+                '09-06',
+                '10-11',
+                '11-11',
+                '11-25',
+                '12-24'];//statutory holiday;
+            $('.submit').on('click', function () {
+                run()
+            })
+            function run() {
+                var day = $('#StartDate').val();
+                var date;
+
+                var number = $('.number').val();
+                var type = $('.dropdown-toggle .txt').html();
+                var rate = $('#Rate').val();
+                var money = $('#LoanAmount').val();
+                var html = '';
+                if (type == 'Daily') {
+                    date = moment($('#StartDate').val(), "YYYY MM DD").add(1, 'days').format("YYYY-MM-DD");
+                } else if (type == 'Weekly') {
+                    date = moment($('#StartDate').val(), "YYYY MM DD").add(1, 'week').format("YYYY-MM-DD");
+                } else if (type == 'Monthly') {
+                    date = moment($('#StartDate').val(), "YYYY MM DD").add(1, 'month').format("YYYY-MM-DD");
+                }
+
+                for (var i = 0; i < number; i++) {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${maindate(date, i, type)}</td>
+                            <td>${(money / number * (1 + rate / 100)).toFixed(2)}</td>
+                        </tr>
+                    `
+                }
+                $('.listform').html(html)
+            }
+            function maindate(date, i, type) {
+                console.log(date)
+                var dateTime;
+                if (type == 'Daily') {
+                    /* If weekends, unified to Monday settlement */
+                    time = moment(date, "YYYY MM DD").add(i, 'days');
+                    dateTime = daterun(time);
+                } else if (type == 'Weekly') {
+                    time = moment(date, "YYYY MM DD").add(i, 'week');
+                    console.log(time);
+                    dateTime = daterun(time);
+
+                } else if (type == 'Monthly') {
+                    time = moment(date, "YYYY MM DD").add(i, 'month');
+                    dateTime = daterun(time);
+
+                }
+                return dateTime;
+            }
+
+            /* date calculation */
+            function daterun(dateTime) {
+                var time;
+                /* If it's Saturday */
+                if (dateTime.days() == 6) {
+                    /* Add 2 days to the working day */
+                    time = dateTime.add(2, 'days');
+                } else if (dateTime.days() == 0) {
+                    /* If it's Sunday */
+                    /* Add 1 day to the working day */
+                    time = dateTime.add(1, 'days');
+                } else {
+                    time = dateTime;
+                }
+
+                var txt = time.format("YYYY-MM-DD").split('-')[1] + '-' + time.format("YYYY-MM-DD").split('-')[2];
+                if (festival.indexOf(txt) == -1) {
+                    return time.format("YYYY-MM-DD")
+                } else {
+                    /* If it's a legal holiday */
+                    /* Friday, plus two days */
+                    if (time.days() == 5) {
+                        return moment(time, "YYYY MM DD").add(3, 'days').format("YYYY-MM-DD")
+                    } else if (time.days() == 6) {
+                        /* If it's Saturday */
+                        /* Add 1 day to the working day */
+                        return moment(time, "YYYY MM DD").add(2, 'days').format("YYYY-MM-DD")
+                    } else if (time.days() == 0) {
+                        /* If it's Sunday */
+                        /* Add 1 day to the working day */
+                        return moment(time, "YYYY MM DD").add(1, 'days').format("YYYY-MM-DD")
+                    } else {
+                        return moment(time, "YYYY MM DD").add(1, 'days').format("YYYY-MM-DD");
+                    }
+
+                }
+
+            }
+
+        })
+    </script>
+</body>
+
+
+</html>
